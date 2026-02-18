@@ -9,6 +9,7 @@ from decimal import Decimal
 from typing import Any, Literal
 
 import humanize
+from dotenv import load_dotenv
 from aiocache import Cache, cached
 from aiocache.serializers import PickleSerializer
 from aiolimiter import AsyncLimiter
@@ -26,6 +27,8 @@ from tastytrade.search import symbol_search
 from tastytrade.streamer import DXLinkStreamer
 from tastytrade.utils import now_in_new_york
 from tastytrade.watchlists import PrivateWatchlist, PublicWatchlist
+
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -85,22 +88,8 @@ def get_context(ctx: Context) -> ServerContext:
 
 
 def get_valid_session(ctx: Context) -> Session:
-    """Get a valid session, refreshing if expired or about to expire.
-
-    TastyTrade sessions expire after 15 minutes. This function checks the
-    expiration time and refreshes proactively if within 5 seconds of expiry.
-    """
-    context = get_context(ctx)
-    session = context.session
-
-    # Refresh if expired or expiring within 5 seconds (buffer for network latency)
-    time_until_expiry = (session.session_expiration - now_in_new_york()).total_seconds()
-    if time_until_expiry < 5:
-        logger.info(f"Session expiring in {time_until_expiry:.0f}s, refreshing...")
-        session.refresh()
-        logger.info(f"Session refreshed, new expiration: {session.session_expiration}")
-
-    return session
+    """Get the session from context. Token refresh is handled automatically by tastytrade v12."""
+    return get_context(ctx).session
 
 @asynccontextmanager
 async def lifespan(_) -> AsyncIterator[ServerContext]:
