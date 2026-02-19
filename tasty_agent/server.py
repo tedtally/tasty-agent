@@ -139,7 +139,7 @@ mcp_app = FastMCP("TastyTrade", lifespan=lifespan)
 async def get_balances(ctx: Context) -> dict[str, Any]:
     context = get_context(ctx)
     session = get_valid_session(ctx)
-    return {k: v for k, v in (await context.account.get_balances(session)).model_dump().items() if v is not None and v != 0}
+    return {k: v for k, v in (await context.account.get_balances(session)).model_dump().items() if v is not None and not (isinstance(v, (int, float, Decimal)) and v == 0)}
 
 
 @mcp_app.tool()
